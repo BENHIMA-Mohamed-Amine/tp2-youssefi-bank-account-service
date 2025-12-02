@@ -37,11 +37,11 @@ class CompteRepository:
         result = await self.session.execute(stmt)
         return result.scalars().all()
     
-    async def find_by_sold_range(self, min_sold: Optional[float], max_sold: Optional[float]) -> List[Compte]:
+    async def find_by_solde_range(self, min_solde: Optional[float], max_solde: Optional[float]) -> List[Compte]:
         query = select(Compte)
-        if min_sold is not None:
-            query = query.where(Compte.solde >= min_sold)
-        if max_sold is not None:
-            query = query.where(Compte.solde <= max_sold)
+        if min_solde is not None:
+            query = query.where(Compte.solde >= min_solde)
+        if max_solde is not None:
+            query = query.where(Compte.solde <= max_solde)
         result = await self.session.execute(query)
         return result.scalars().all()
