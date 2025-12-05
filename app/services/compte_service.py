@@ -110,17 +110,13 @@ class CompteService:
 
         compte = await self.get_by_id(compte_id)
 
-        # Check insufficient funds
-        if compte.solde < amount:
-            raise InsufficientFundsError(
-                f"Insufficient funds. Balance: {compte.solde}, Requested: {amount}"
-            )
-
         new_balance = compte.solde - amount
 
-        # EPARGNE accounts cannot go negative
+        # EPARGNE accounts cannot go negative (This is the only necessary balance check now)
         if compte.type == TypeCompte.EPARGNE and new_balance < 0:
+            # Raise the InsufficientFundsError here, as it accurately reflects
+            # why the transaction fails for a savings account.
             raise NegativeBalanceError("EPARGNE accounts cannot have negative balance")
-
         compte.solde = new_balance
         return await self.repository.update(compte)
+
