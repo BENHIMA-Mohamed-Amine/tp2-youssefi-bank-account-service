@@ -1,13 +1,15 @@
 # app/main.py
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from strawberry.fastapi import GraphQLRouter
 from contextlib import asynccontextmanager
 from app.database import (
     init_db,
+    get_session,
 )  # Assuming this is the correct import path
 from app.routers import compte_router
-
+from app.graphql.schema import schema
 
 # Define an async context manager for application lifespan events (startup/shutdown)
 @asynccontextmanager
@@ -20,6 +22,15 @@ async def lifespan(app: FastAPI):
     print("Application shutting down...")
 
 
+# Define a Context Getter (Dependency Injection for GraphQL)
+async def get_context(session=Depends(get_session)):
+    """
+    This function runs for every GraphQL request.
+    It takes the FastAPI 'session' dependency and puts it into a dictionary
+    that the Resolvers can access via 'info.context'.
+    """
+    return {"session": session}
+
 # Initialize the FastAPI application
 app = FastAPI(
     title="Bank Account Microservice",
@@ -28,9 +39,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# --- GraphQL Setup ---
+graphql_app = GraphQLRouter(schema=schema, context_getter=get_context)
+
 # 🔗 Include the routers
 app.include_router(compte_router.router, tags=["Comptes"], prefix="/api/v1/comptes")
-
+app.include_router(graphql_app, tags=["GraphQL"], prefix="/graphql")
 
 # Basic root endpoint
 @app.get("/", tags=["Root"])

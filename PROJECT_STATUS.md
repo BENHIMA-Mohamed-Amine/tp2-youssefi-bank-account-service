@@ -58,6 +58,7 @@ We established a rigorous testing environment using `pytest`.
 ## 3. Current State
 
 The application is functionally complete and fully containerized.
+
 1.  **Core Logic:** Verified by extensive testing.
 2.  **Deployment:** Runs successfully in Docker with data persistence.
 3.  **Code Quality:** Clean, warning-free codebase.
@@ -128,6 +129,7 @@ We established a rigorous testing environment using `pytest`.
 ## 3. Current State
 
 The application is functionally complete and fully containerized.
+
 1.  **Core Logic:** Verified by extensive testing.
 2.  **Deployment:** Runs successfully in Docker with data persistence.
 3.  **Code Quality:** Clean, warning-free codebase.
@@ -140,11 +142,4 @@ The application is functionally complete and fully containerized.
 
 1.  **GraphQL Integration:** Implement a GraphQL layer (using Strawberry) for flexible data fetching.
 2.  **Test Coverage:** Install `pytest-cov` to generate a coverage report.
-3.  **CI/CD Pipeline:** Set up Github Actions to run tests automatically on every push.
-2.  **CI/CD:** Setup GitHub Actions for automated testing.
-
-### Phase 3: Expansion (Microservices Architecture)
-
-1.  **GraphQL Integration:** Implement a GraphQL layer (using Strawberry) for flexible data fetching.
-2.  **gRPC:** Implement a gRPC server for high-performance inter-service communication.
-3.  **Frontend:** Build a client (Angular/React) to consume the API.
+3.  **CI/CD Pipeline:** Set up Github Actions to run tests automatically and deplyoments on azure vms on every push.
