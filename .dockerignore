@@ -6,4 +6,5 @@ __pycache__
 tests/
 screenshots/
 compte.db
-/data
+data/
+htmlcov/
