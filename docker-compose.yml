@@ -1,0 +1,10 @@
+services:
+  bank-account-service:
+    build: .
+    container_name: bank-account-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/compte.db

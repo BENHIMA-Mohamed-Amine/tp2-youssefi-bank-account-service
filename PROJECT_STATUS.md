@@ -11,19 +11,20 @@
 - **ORM:** SQLModel (SQLAlchemy + Pydantic)
 - **Database:** SQLite (Async via `aiosqlite`) for dev/test
 - **Testing:** Pytest, Pytest-Asyncio, Httpx
+- **DevOps:** Docker, Docker Compose, uv
 
 ---
 
 ## 2. Achievements & Implementation Details
 
-We have successfully built and verified a complete CRUD REST API with the following layered architecture:
+We have successfully built, tested, and containerized the application.
 
 ### A. Core Architecture
 
 - **Models:** Defined the `Compte` entity with business constraints (enums for `COURANT`/`EPARGNE`).
 - **Repository Layer:** Implemented `CompteRepository` to abstract raw database operations.
-- **Service Layer:** Implemented `CompteService` to handle business logic (e.g., preventing negative balances for savings accounts, ensuring positive transaction amounts).
-- **Router Layer:** Implemented `CompteRouter` to handle HTTP requests, path parameters, and query parameters.
+- **Service Layer:** Implemented `CompteService` to handle business logic (e.g., preventing negative balances).
+- **Router Layer:** Implemented `CompteRouter` to handle HTTP requests.
 
 ### B. API Endpoints Implemented
 
@@ -42,27 +43,24 @@ We have successfully built and verified a complete CRUD REST API with the follow
 
 We established a rigorous testing environment using `pytest`.
 
-- **Infrastructure:** Configured an **in-memory SQLite database** using `pytest` fixtures to ensure tests run in isolation without polluting a persistent database.
-- **Dependency Injection:** Successfully overrode FastAPI's `get_session` dependency to inject the test database session.
-- **Bug Fixes & Improvements:**
-  - **AsyncClient Compatibility:** Updated `httpx` implementation to use `ASGITransport` (fixing the `app` keyword error).
-  - **Fixture Logic:** Fixed the dependency override to return the session object directly instead of a generator (fixing `AttributeError: 'async_generator' has no attribute 'add'`).
-  - **API Logic (Validation):** Adjusted the `GET /` endpoint to use `Any` (or a `Union`), allowing dynamic response models for projections.
-  - **API Logic (Routing):** Reordered routes to ensure `/search` is defined **before** `/{id}` to prevent route shadowing.
-- **Status:** **8/8 Tests Passing** (100% success rate).
+- **Infrastructure:** In-memory SQLite database using `pytest` fixtures.
+- **Dependency Injection:** Overrode FastAPI's `get_session` to inject test sessions.
+- **Clean Code:** Fixed all `HTTP_422_UNPROCESSABLE_ENTITY` deprecation warnings.
+- **Status:** **32/32 Tests Passing** (100% success rate).
+
+### D. DevOps & Production Readiness
+
+- **Dockerization:** Created a multistage `Dockerfile` using `uv` for fast, cached builds.
+- **Orchestration:** Implemented `docker-compose.yml` with persistent volume mapping (`./data`) and async database configuration (`sqlite+aiosqlite`).
 
 ---
 
 ## 3. Current State
 
-The application is functionally complete for the core requirements. The tests prove that:
-
-1.  CRUD operations work.
-2.  Business rules (no negative savings) are enforced.
-3.  Search and Projections function correctly.
-4.  The API handles errors (404, 422) gracefully.
-
-_Note: There are minor deprecation warnings regarding `HTTP_422_UNPROCESSABLE_CONTENT`, which can be cleaned up later._
+The application is functionally complete and fully containerized.
+1.  **Core Logic:** Verified by extensive testing.
+2.  **Deployment:** Runs successfully in Docker with data persistence.
+3.  **Code Quality:** Clean, warning-free codebase.
 
 ---
 
@@ -70,15 +68,80 @@ _Note: There are minor deprecation warnings regarding `HTTP_422_UNPROCESSABLE_CO
 
 ### Immediate Actions
 
-1.  **Refactor Status Codes:** Replace `HTTP_422_UNPROCESSABLE_CONTENT` with `HTTP_422_UNPROCESSABLE_CONTENT` to clear test warnings.
-2.  **Version Control:** `git commit` the current stable state.
+1.  **Test Coverage:** Install `pytest-cov` (`pip install pytest-cov`) to generate a coverage report.# Project Status Report: Bank Account Microservice
 
-### Phase 2: DevOps & Production Readiness
+## 1. Project Overview
 
-1.  **Dockerization:**
-    - Create a `Dockerfile` to package the application.
-    - Create a `docker-compose.yml` to orchestrate the service.
-2.  **Test Coverage:** Install `pytest-cov` (`pip install pytest-cov`) to generate a coverage report.
+**Name:** `bank-account-service`  
+**Goal:** Create a robust, async microservice for managing bank accounts using modern Python standards.  
+**Tech Stack:**
+
+- **Language:** Python 3.12+
+- **Framework:** FastAPI
+- **ORM:** SQLModel (SQLAlchemy + Pydantic)
+- **Database:** SQLite (Async via `aiosqlite`) for dev/test
+- **Testing:** Pytest, Pytest-Asyncio, Httpx
+- **DevOps:** Docker, Docker Compose, uv
+
+---
+
+## 2. Achievements & Implementation Details
+
+We have successfully built, tested, and containerized the application.
+
+### A. Core Architecture
+
+- **Models:** Defined the `Compte` entity with business constraints (enums for `COURANT`/`EPARGNE`).
+- **Repository Layer:** Implemented `CompteRepository` to abstract raw database operations.
+- **Service Layer:** Implemented `CompteService` to handle business logic (e.g., preventing negative balances).
+- **Router Layer:** Implemented `CompteRouter` to handle HTTP requests.
+
+### B. API Endpoints Implemented
+
+| Method   | Endpoint                        | Description                                                                                                     |
+| :------- | :------------------------------ | :-------------------------------------------------------------------------------------------------------------- |
+| `POST`   | `/api/v1/comptes/`              | Create a new account.                                                                                           |
+| `GET`    | `/api/v1/comptes/{id}`          | Retrieve a specific account by ID.                                                                              |
+| `GET`    | `/api/v1/comptes/`              | List all accounts. Supports **Projections** (`full`, `summary`, `minimal`) to return different JSON structures. |
+| `GET`    | `/api/v1/comptes/search`        | Filter accounts by `type` or balance range (`min_solde`, `max_solde`).                                          |
+| `PUT`    | `/api/v1/comptes/{id}`          | Update account details.                                                                                         |
+| `DELETE` | `/api/v1/comptes/{id}`          | Delete an account.                                                                                              |
+| `POST`   | `/api/v1/comptes/{id}/deposit`  | Credit an account.                                                                                              |
+| `POST`   | `/api/v1/comptes/{id}/withdraw` | Debit an account (with balance checks).                                                                         |
+
+### C. Testing & Quality Assurance
+
+We established a rigorous testing environment using `pytest`.
+
+- **Infrastructure:** In-memory SQLite database using `pytest` fixtures.
+- **Dependency Injection:** Overrode FastAPI's `get_session` to inject test sessions.
+- **Clean Code:** Fixed all `HTTP_422_UNPROCESSABLE_ENTITY` deprecation warnings.
+- **Status:** **32/32 Tests Passing** (100% success rate).
+
+### D. DevOps & Production Readiness
+
+- **Dockerization:** Created a multistage `Dockerfile` using `uv` for fast, cached builds.
+- **Orchestration:** Implemented `docker-compose.yml` with persistent volume mapping (`./data`) and async database configuration (`sqlite+aiosqlite`).
+
+---
+
+## 3. Current State
+
+The application is functionally complete and fully containerized.
+1.  **Core Logic:** Verified by extensive testing.
+2.  **Deployment:** Runs successfully in Docker with data persistence.
+3.  **Code Quality:** Clean, warning-free codebase.
+
+---
+
+## 4. Roadmap: What's Next?
+
+### Immediate Actions
+
+1.  **GraphQL Integration:** Implement a GraphQL layer (using Strawberry) for flexible data fetching.
+2.  **Test Coverage:** Install `pytest-cov` to generate a coverage report.
+3.  **CI/CD Pipeline:** Set up Github Actions to run tests automatically on every push.
+2.  **CI/CD:** Setup GitHub Actions for automated testing.
 
 ### Phase 3: Expansion (Microservices Architecture)
 
