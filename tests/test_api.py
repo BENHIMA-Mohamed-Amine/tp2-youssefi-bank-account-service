@@ -10,13 +10,11 @@ from httpx import (
 from sqlmodel import SQLModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from typing import Generator
 
 # Import the FastAPI app and the dependency to override
 from app.main import app
 from app.database import get_session
-from app.models.compte import Compte, TypeCompte
-from fastapi import Depends  # Needed for override_get_session type hint
+from app.models.compte import TypeCompte
 
 
 # --- Fixtures for Test Database Setup ---

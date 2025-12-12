@@ -21,7 +21,7 @@ from app.schemas.compte import (
     CompteSummary,
     CompteMinimal,
     TypeCompte,
-    TransactionRequest, 
+    TransactionRequest,
 )
 
 router = APIRouter()
@@ -40,13 +40,15 @@ def get_response_model(projection: str):
         return CompteMinimal
     if projection == "summary":
         return CompteSummary
-    return CompteResponse 
+    return CompteResponse
 
 
 # ----------------------------------------------------
 # 1. GET /comptes - list all (with projection query param)
 # ----------------------------------------------------
-@router.get("/", response_model=List[Union[CompteResponse, CompteSummary, CompteMinimal]])
+@router.get(
+    "/", response_model=List[Union[CompteResponse, CompteSummary, CompteMinimal]]
+)
 async def list_comptes(
     service: CompteService = Depends(get_compte_service),
     projection: str = Query(
@@ -87,6 +89,7 @@ async def search_comptes(
         detail="Must provide at least one search criterion (type, min_solde, or max_solde)",
     )
 
+
 # ----------------------------------------------------
 # 2. GET /comptes/{id} - get by ID
 # ----------------------------------------------------
@@ -117,8 +120,9 @@ async def create_compte(
         return compte
     except NegativeBalanceError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
         )
+
 
 # ----------------------------------------------------
 # 4. PUT /comptes/{id} - update account
@@ -137,7 +141,7 @@ async def update_compte(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except NegativeBalanceError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
         )
 
 
@@ -173,7 +177,7 @@ async def deposit_money(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except InvalidAmountError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
         )
 
 
@@ -194,11 +198,11 @@ async def withdraw_money(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except InvalidAmountError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
         )
     except NegativeBalanceError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
         )
     except InsufficientFundsError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
