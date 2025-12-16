@@ -71,6 +71,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # FIX 1: Copy file to the specific project folder
       - name: Copy Compose File via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -78,8 +79,10 @@ jobs:
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_SSH_KEY }}
           source: "docker-compose.yml"
-          target: "~/"
+          # Target path relative to user home (~/)
+          target: "tp2-youssefi-bank-account-service/"
 
+      # FIX 2: CD into the folder before running commands
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -87,6 +90,10 @@ jobs:
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_SSH_KEY }}
           script: |
+            # Navigate to the correct directory first
+            cd tp2-youssefi-bank-account-service
+
+            # Now these commands will use the updated docker-compose.yml
             docker compose pull
             docker compose up -d --force-recreate
             docker image prune -f
