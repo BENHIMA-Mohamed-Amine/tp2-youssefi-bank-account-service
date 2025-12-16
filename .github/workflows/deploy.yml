@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Stage 1: Continuous Integration (Testing)
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -25,14 +24,19 @@ jobs:
         run: uv python install 3.12
 
       - name: Install Dependencies
-        # Installs all dependencies (including dev) from uv.lock
         run: uv sync --frozen
 
+      # NEW STEP: Create the missing data directory
+      - name: Create Data Directory
+        run: mkdir -p data
+
       - name: Run Pytest
-        # 'uv run' executes the command inside the virtual environment
+        # Explicitly setting the DB URL to a file path in the newly created folder
+        # Just in case your config defaults to something else
+        env:
+          DATABASE_URL: "sqlite+aiosqlite:///./data/test_compte.db"
         run: uv run pytest
 
-  # Stage 2: Continuous Delivery (Build & Push)
   build:
     name: Build Docker Image
     needs: test
@@ -59,7 +63,6 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/bank-account-service:latest
             ${{ secrets.DOCKER_USERNAME }}/bank-account-service:${{ github.sha }}
 
-  # Stage 3: Continuous Deployment (Deploy to Azure)
   deploy:
     name: Deploy to Azure VM
     needs: build
@@ -68,7 +71,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Copy docker-compose.yml to the Azure VM
       - name: Copy Compose File via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -78,7 +80,6 @@ jobs:
           source: "docker-compose.yml"
           target: "~/"
 
-      # Deploy using Docker Compose
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
