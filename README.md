@@ -76,6 +76,40 @@ The application is deployed on a Microsoft Azure Virtual Machine.
 
 ![curl requests](./screenshots/curl-requests.png)
 
+## **🔄 CI/CD Automation (GitHub Actions)**
+
+Fully automated pipeline that handles testing and deployment to Azure VM.
+
+### **Pipeline Workflow**
+
+**Trigger:** Automatic on every push to `main` branch.
+
+**Stage 1: Continuous Integration (Quality Gate)**
+
+* **Environment:** Ubuntu Latest, Python 3.12.
+* **Dependency Management:** Uses `uv` for fast installation from `uv.lock`.
+* **Action:** Runs full pytest suite (32 tests).
+* **Rule:** If any test fails, deployment is blocked.
+
+**Stage 2: Continuous Deployment (Zero-Downtime)**
+
+* **Access:** Authenticates via SSH using GitHub Secrets.
+* **Strategy:** Git Pull Deployment:
+  * Navigates to project folder on Azure VM.
+  * Pulls latest code (`git pull origin main`).
+  * Stops old containers and removes images (`docker compose down --rmi local`).
+  * Rebuilds and starts new containers (`docker compose up -d --build`).
+
+### **Pipeline Validation**
+
+Successful execution of the CI/CD pipeline:
+
+![GitHub Actions Pipeline](./screenshots/github-actions.png)
+
+Automatic deployment verification (updated welcome message):
+
+![Live Deployment Update](./screenshots/root-message.png)
+
 ## **📸 Documentation & Validation**
 
 ### **1\. Interactive API Documentation**
@@ -99,10 +133,12 @@ Rigorous testing environment covering all business logic.
 
 Ensures a consistent environment.
 
-\# 1\. Build and Start  
-docker-compose up \--build \-d
+```bash
+# 1. Build and Start
+docker-compose up --build -d
 
-\# 2\. Access API  
-\# Open http://localhost:8000/docs  
+# 2. Access API
+# Open http://localhost:8000/docs
+```  
  
 
