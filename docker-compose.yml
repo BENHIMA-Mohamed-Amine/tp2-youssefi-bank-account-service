@@ -1,10 +1,20 @@
 services:
   bank-account-service:
-    build: .
+    # CHANGE THIS: Replace with your actual Docker Hub username
+    image: your-docker-hub-username/bank-account-service:latest
+    
     container_name: bank-account-service
+    
+    # Ensures the app restarts automatically if the VM reboots or the app crashes
+    restart: always
+    
     ports:
       - "8000:8000"
+      
     volumes:
+      # Maps the 'data' folder on your Azure VM to the container
       - ./data:/app/data
+      
     environment:
+      # Ensure this path matches the volume path inside the container (/app/data)
       - DATABASE_URL=sqlite+aiosqlite:///./data/compte.db

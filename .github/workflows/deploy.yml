@@ -1,0 +1,95 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - "main"
+  workflow_dispatch:
+
+jobs:
+  # Stage 1: Continuous Integration (Testing)
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          pip install uv
+          uv pip install --system -r requirements.txt
+          uv pip install --system pytest pytest-asyncio httpx
+
+      - name: Run Pytest
+        run: pytest
+
+  # Stage 2: Continuous Delivery (Build & Push)
+  build:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/bank-account-service:latest
+            ${{ secrets.DOCKER_USERNAME }}/bank-account-service:${{ github.sha }}
+
+  # Stage 3: Continuous Deployment (Deploy to Azure)
+  deploy:
+    name: Deploy to Azure VM
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # NEW STEP: Copy docker-compose.yml to the Azure VM
+      - name: Copy Compose File via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AZURE_VM_IP }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "~/" # Copies to user's home directory
+
+      # UPDATED STEP: Deploy using Docker Compose
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_IP }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          script: |
+            # Pull the latest image defined in the compose file
+            docker compose pull
+            
+            # Restart services with new image
+            # -d: Detached mode
+            # --force-recreate: Ensures container is replaced even if config hasn't changed
+            docker compose up -d --force-recreate
+            
+            # Optional: Clean up unused images to save space
+            docker image prune -f
