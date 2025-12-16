@@ -11,6 +11,7 @@ from app.database import (
 from app.routers import compte_router
 from app.graphql.schema import schema
 
+
 # Define an async context manager for application lifespan events (startup/shutdown)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +32,7 @@ async def get_context(session=Depends(get_session)):
     """
     return {"session": session}
 
+
 # Initialize the FastAPI application
 app = FastAPI(
     title="Bank Account Microservice",
@@ -46,11 +48,12 @@ graphql_app = GraphQLRouter(schema=schema, context_getter=get_context)
 app.include_router(compte_router.router, tags=["Comptes"], prefix="/api/v1/comptes")
 app.include_router(graphql_app, tags=["GraphQL"], prefix="/graphql")
 
+
 # Basic root endpoint
 @app.get("/", tags=["Root"])
 async def read_root():
     return {
-        "message": "Bank Account Microservice is running! Navigate to /docs for API details."
+        "message": "Bank Account Microservice is running! CI/CD Pipeline Test Successful. Navigate to /docs for API details."
     }
 
 
