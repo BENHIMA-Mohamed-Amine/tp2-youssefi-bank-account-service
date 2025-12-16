@@ -1,7 +1,6 @@
 services:
   bank-account-service:
-    # CHANGE THIS: Replace with your actual Docker Hub username
-    image: your-docker-hub-username/bank-account-service:latest
+    build: .
     
     container_name: bank-account-service
     
