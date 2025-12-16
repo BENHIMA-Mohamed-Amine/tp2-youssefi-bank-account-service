@@ -15,19 +15,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
         with:
-          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.12
 
       - name: Install Dependencies
-        run: |
-          pip install uv
-          uv pip install --system -r requirements.txt
-          uv pip install --system pytest pytest-asyncio httpx
+        # Installs all dependencies (including dev) from uv.lock
+        run: uv sync --frozen
 
       - name: Run Pytest
-        run: pytest
+        # 'uv run' executes the command inside the virtual environment
+        run: uv run pytest
 
   # Stage 2: Continuous Delivery (Build & Push)
   build:
@@ -65,7 +68,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # NEW STEP: Copy docker-compose.yml to the Azure VM
+      # Copy docker-compose.yml to the Azure VM
       - name: Copy Compose File via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -73,9 +76,9 @@ jobs:
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_SSH_KEY }}
           source: "docker-compose.yml"
-          target: "~/" # Copies to user's home directory
+          target: "~/"
 
-      # UPDATED STEP: Deploy using Docker Compose
+      # Deploy using Docker Compose
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -83,13 +86,6 @@ jobs:
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_SSH_KEY }}
           script: |
-            # Pull the latest image defined in the compose file
             docker compose pull
-            
-            # Restart services with new image
-            # -d: Detached mode
-            # --force-recreate: Ensures container is replaced even if config hasn't changed
             docker compose up -d --force-recreate
-            
-            # Optional: Clean up unused images to save space
             docker image prune -f
